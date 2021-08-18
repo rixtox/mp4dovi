@@ -1,0 +1,41 @@
+# This is an example .goreleaser.yml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+dockers:
+- image_templates: ["ghcr.io/rixtox/mp4dovi:{{ .Version }}"]
+  dockerfile: Dockerfile
+  build_flag_templates:
+  - --label=org.opencontainers.image.title={{ .ProjectName }}
+  - --label=org.opencontainers.image.description={{ .ProjectName }}
+  - --label=org.opencontainers.image.url=https://github.com/rixtox/mp4dovi
+  - --label=org.opencontainers.image.source=https://github.com/rixtox/mp4dovi
+  - --label=org.opencontainers.image.version={{ .Version }}
+  - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+  - --label=org.opencontainers.image.revision={{ .FullCommit }}
+  - --label=org.opencontainers.image.licenses=MIT
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
