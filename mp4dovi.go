@@ -121,14 +121,18 @@ func trakHandler(rw *os.File) func(Header) error {
 	}
 }
 
-func run(mp4file string) (err error) {
+func processFile(mp4file string) (err error) {
 	var (
 		rw *os.File
 		h  *Header
 	)
+
 	if rw, err = os.OpenFile(mp4file, os.O_RDWR, 0); err != nil {
 		return fmt.Errorf(`cannot open file "%s": %w`, mp4file, err)
 	}
+	defer rw.Close()
+
+	fmt.Printf(`Processing %s ...\n`, mp4file)
 
 	if _, err = rw.Seek(0, io.SeekStart); err != nil {
 		return fmt.Errorf(`failed to seek: %w`, err)
@@ -144,18 +148,27 @@ func run(mp4file string) (err error) {
 	return
 }
 
+func run(mp4files []string) (err error) {
+	for _, mp4file := range mp4files {
+		if err = processFile(mp4file); err != nil {
+			return fmt.Errorf(`failed processing file %s: %w`, mp4file, err)
+		}
+	}
+	return
+}
+
 func help() {
-	fmt.Println(`Usage: mp4dovi <file>`)
+	fmt.Println(`Usage: mp4dovi <file>...`)
 }
 
 func main() {
 
-	if len(os.Args) != 2 {
+	if len(os.Args) < 2 {
 		help()
 		os.Exit(1)
 	}
 
-	if err := run(os.Args[1]); err != nil {
+	if err := run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
 }
